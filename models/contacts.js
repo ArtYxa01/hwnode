@@ -1,19 +1,39 @@
-// const fs = require('fs/promises')
+const { Schema, model } = require('mongoose'); // Підключення модулів Schema та model з mongoose
+const Joi = require('joi'); // Підключення модуля Joi для валідації даних
+const { handleMongooseError } = require('../helpers'); // Підключення функції handleMongooseError з папки '../helpers'
 
-const listContacts = async () => {}
+const contactSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Set name for contact'], // Властивість name має тип String та обов'язкова для заповнення. Якщо значення не вказане, генерується помилка з повідомленням "Set name for contact"
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    favorite: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { versionKey: false }, 
+);
 
-const getContactById = async (contactId) => {}
+contactSchema.post('save', handleMongooseError); 
 
-const removeContact = async (contactId) => {}
+const Contact = model('contact', contactSchema); 
 
-const addContact = async (body) => {}
+const addSchema = Joi.object({
+  name: Joi.string().required(), 
+  email: Joi.string().required(), 
+  phone: Joi.string().required(), 
+});
 
-const updateContact = async (contactId, body) => {}
+const updateFavoriteSchema = Joi.object({
+  favorite: Joi.boolean().required(), 
+});
 
-module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-}
+module.exports = { Contact, addSchema, updateFavoriteSchema }; 
