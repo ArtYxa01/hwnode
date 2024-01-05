@@ -1,69 +1,18 @@
-const fs = require('fs/promises');
-const path = require('path');
-const { randomUUID } = require('crypto');
+const {Contact, addSchema, updateFavoriteSchema} = require ('../models/contacts')
+const { HttpError }= require('../helpers')
+const ctrlWrapper = require('../helpers/ctrlWrapper')
+const listContacts = async (req, res, next) => {
+  const result = await Contact.find()
+  res.json(result)
+  console.log(result)
+}
 
-const contactsPath = path.join(__dirname, 'contacts.json');
+const getById = async (req, res, next) => {
+  const { id } = req.params
+  const result = await Contact.findById(id)
 
-const updateContacts = async (contacts) => {
-  return await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-};
-
-const listContacts = async () => {
-  return JSON.parse(await fs.readFile(contactsPath));
-};
-
-const getContactById = async (id) => {
-  const contacts = await listContacts();
-  const contact = contacts.find((contact) => contact.id === id);
-
-  return contact || null;
-};
-
-const removeContact = async (id) => {
-  const contacts = await listContacts();
-  const index = contacts.findIndex((contact) => contact.id === id);
-
-  if (index === -1) {
-    return null;
+  if (!result) {
+    throw HttpError(404, 'notFound')
   }
-
-  const [result] = contacts.splice(index, 1);
-  await updateContacts(contacts);
-  return result;
-};
-
-const addContact = async (body) => {
-  const contacts = await listContacts();
-  const newContact = {
-    id: randomUUID(),
-    ...body,
-  };
-
-  contacts.push(newContact);
-  await updateContacts(contacts);
-  return newContact;
-};
-
-const updateContact = async (id, body) => {
-  const contacts = await listContacts();
-  const index = contacts.findIndex((contact) => contact.id === id);
-  if (index === -1) {
-    return null;
-  }
-
-  contacts[index] = {
-    id,
-    ...body,
-  };
-
-  await updateContacts(contacts);
-  return contacts[index];
-};
-
-module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-};
+  res.json(result)
+}
